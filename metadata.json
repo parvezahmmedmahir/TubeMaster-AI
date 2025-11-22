@@ -1,0 +1,8 @@
+{
+  "name": "TubeMaster AI: Ultimate Video Strategist",
+  "description": "A world-class system to analyze videos, generate SEO-optimized metadata, create thumbnails via Pexels, and check copyright risks using Gemini 2.5 Flash.",
+  "requestFramePermissions": [
+    "microphone",
+    "camera"
+  ]
+}
