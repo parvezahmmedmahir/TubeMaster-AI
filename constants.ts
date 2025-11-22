@@ -1,12 +1,13 @@
 
+
 // API Keys provided by user for system replacement
 export const DEFAULT_GEMINI_KEY = 'AIzaSyDfNsN9FB55mBCiryFVG_tVyL47a3UPajo';
 // Pexels key kept for legacy/fallback but primary is now AI generation
 export const DEFAULT_PEXELS_KEY = '6YaiLRwvAoV9qyS4wKkMbdPST9OmKeELjmdl6Kl0SDJxFsfeNubZDTgX';
 
-// Supabase Defaults (Empty by default, user must provide)
-export const DEFAULT_SUPABASE_URL = '';
-export const DEFAULT_SUPABASE_KEY = '';
+// Supabase Defaults (User Provided)
+export const DEFAULT_SUPABASE_URL = 'https://putqqwmkwrkcvrhjfyjn.supabase.co';
+export const DEFAULT_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1dHFxd21rd3JrY3ZyaGpmeWpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3MDYwMDUsImV4cCI6MjA3OTI4MjAwNX0.m7I8GWnRwT6GuiTudIwwVpSQuVM8fsq7PGXSuC0_Wz0';
 
 export const GEMINI_MODEL_VIDEO = 'gemini-2.5-flash'; 
 export const GEMINI_MODEL_IMAGE = 'gemini-2.5-flash-image';
