@@ -7,9 +7,10 @@ import { ThumbnailGenerator } from './components/ThumbnailGenerator';
 import { VideoEditor } from './components/VideoEditor';
 import { ApiSettingsModal } from './components/ApiSettingsModal';
 import { analyzeVideoContent } from './services/geminiService';
+import { saveAnalysisToCloud } from './services/supabaseService';
 import { VideoMetadata, PlatformMode } from './types';
-import { DEFAULT_GEMINI_KEY, DEFAULT_PEXELS_KEY } from './constants';
-import { AlertCircle, Sparkles, Zap, Youtube, Facebook, Music2 } from 'lucide-react';
+import { DEFAULT_GEMINI_KEY, DEFAULT_PEXELS_KEY, DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_KEY } from './constants';
+import { AlertCircle, Sparkles, Zap, Youtube, Facebook, Music2, CheckCircle } from 'lucide-react';
 
 function App() {
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
@@ -20,6 +21,9 @@ function App() {
   // API Key Management
   const [geminiKey, setGeminiKey] = useState(DEFAULT_GEMINI_KEY);
   const [pexelsKey, setPexelsKey] = useState(DEFAULT_PEXELS_KEY);
+  const [supabaseUrl, setSupabaseUrl] = useState(DEFAULT_SUPABASE_URL);
+  const [supabaseKey, setSupabaseKey] = useState(DEFAULT_SUPABASE_KEY);
+  
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Platform State
@@ -73,9 +77,21 @@ function App() {
     }
   };
 
-  const handleSaveKeys = (newGemini: string, newPexels: string) => {
+  const handleSaveKeys = (newGemini: string, newPexels: string, newSupabaseUrl: string, newSupabaseKey: string) => {
     setGeminiKey(newGemini);
     setPexelsKey(newPexels);
+    setSupabaseUrl(newSupabaseUrl);
+    setSupabaseKey(newSupabaseKey);
+  };
+  
+  const handleSaveToCloud = async () => {
+    if (!analysisResult) return;
+    try {
+        await saveAnalysisToCloud(analysisResult, selectedPlatform, supabaseUrl, supabaseKey);
+        alert("Strategy successfully saved to Supabase Cloud Database!");
+    } catch (err: any) {
+        alert(`Save Failed: ${err.message}`);
+    }
   };
 
   return (
@@ -88,6 +104,8 @@ function App() {
         onClose={() => setIsSettingsOpen(false)}
         geminiKey={geminiKey}
         pexelsKey={pexelsKey}
+        supabaseUrl={supabaseUrl}
+        supabaseKey={supabaseKey}
         onSave={handleSaveKeys}
       />
 
@@ -122,55 +140,15 @@ function App() {
           {/* LEFT COLUMN */}
           <div className="lg:col-span-7 space-y-8">
             
-            {/* Platform Selector */}
-            {!videoUrl && (
-                <div className="flex justify-center mb-4">
-                    <div className="bg-slate-900/60 p-1 rounded-xl border border-slate-700 flex space-x-2 shadow-xl">
-                        <button 
-                            onClick={() => setSelectedPlatform('YOUTUBE')}
-                            className={`flex items-center px-5 py-3 rounded-lg transition-all duration-300 font-bold ${
-                                selectedPlatform === 'YOUTUBE' ? 'bg-red-600 text-white shadow-lg shadow-red-900/50' : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                            }`}
-                        >
-                            <Youtube className="w-5 h-5 mr-2" />
-                            YouTube
-                        </button>
-                        <button 
-                            onClick={() => setSelectedPlatform('TIKTOK')}
-                            className={`flex items-center px-5 py-3 rounded-lg transition-all duration-300 font-bold ${
-                                selectedPlatform === 'TIKTOK' ? 'bg-pink-600 text-white shadow-lg shadow-pink-900/50' : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                            }`}
-                        >
-                            <Music2 className="w-5 h-5 mr-2" />
-                            TikTok
-                        </button>
-                        <button 
-                            onClick={() => setSelectedPlatform('FACEBOOK')}
-                            className={`flex items-center px-5 py-3 rounded-lg transition-all duration-300 font-bold ${
-                                selectedPlatform === 'FACEBOOK' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/50' : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                            }`}
-                        >
-                            <Facebook className="w-5 h-5 mr-2" />
-                            Facebook
-                        </button>
-                    </div>
-                </div>
-            )}
-
             <div className="bg-slate-900/40 rounded-3xl border border-slate-800/50 p-1 shadow-2xl shadow-black/50 backdrop-blur-md">
                 {!videoUrl ? (
                     <div className="p-8 relative">
-                        {/* Platform Indicator Badge inside Uploader */}
-                        <div className="absolute top-4 right-4 z-20">
-                             <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded border ${
-                                 selectedPlatform === 'TIKTOK' ? 'bg-pink-900/20 text-pink-400 border-pink-500/30' :
-                                 selectedPlatform === 'FACEBOOK' ? 'bg-blue-900/20 text-blue-400 border-blue-500/30' :
-                                 'bg-red-900/20 text-red-400 border-red-500/30'
-                             }`}>
-                                 Target: {selectedPlatform}
-                             </span>
-                        </div>
-                        <VideoUploader onFileSelect={handleFileSelect} isLoading={isAnalyzing} />
+                        <VideoUploader 
+                            onFileSelect={handleFileSelect} 
+                            isLoading={isAnalyzing}
+                            platformMode={selectedPlatform}
+                            onPlatformChange={setSelectedPlatform}
+                        />
                     </div>
                 ) : (
                     <VideoEditor videoUrl={videoUrl} metadata={analysisResult} />
@@ -207,9 +185,17 @@ function App() {
                </div>
             ) : analysisResult ? (
               <>
-                <div className="flex items-center space-x-2 text-indigo-400 mb-2 pl-1">
-                    <Sparkles className="w-5 h-5" />
-                    <h2 className="text-xl font-bold text-white">Strategic Analysis Report</h2>
+                <div className="flex items-center justify-between text-indigo-400 mb-2 pl-1">
+                    <div className="flex items-center space-x-2">
+                        <Sparkles className="w-5 h-5" />
+                        <h2 className="text-xl font-bold text-white">Strategic Analysis Report</h2>
+                    </div>
+                    <button 
+                        onClick={handleSaveToCloud}
+                        className="text-xs flex items-center bg-green-900/30 text-green-400 border border-green-800 px-2 py-1 rounded hover:bg-green-900/50 transition-colors"
+                    >
+                        <CheckCircle className="w-3 h-3 mr-1" /> Save to Cloud
+                    </button>
                 </div>
                 
                 {/* Analysis Results with Default Tab based on Platform */}
@@ -230,6 +216,7 @@ function App() {
                 <p>System Ready for {selectedPlatform}.</p>
                 <p className="text-xs mt-2 text-slate-600">Select Mode: YouTube, TikTok, Facebook</p>
               </div>
+
             )}
 
           </div>
