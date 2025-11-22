@@ -4,6 +4,10 @@ export const DEFAULT_GEMINI_KEY = 'AIzaSyDfNsN9FB55mBCiryFVG_tVyL47a3UPajo';
 // Pexels key kept for legacy/fallback but primary is now AI generation
 export const DEFAULT_PEXELS_KEY = '6YaiLRwvAoV9qyS4wKkMbdPST9OmKeELjmdl6Kl0SDJxFsfeNubZDTgX';
 
+// Supabase Defaults (Empty by default, user must provide)
+export const DEFAULT_SUPABASE_URL = '';
+export const DEFAULT_SUPABASE_KEY = '';
+
 export const GEMINI_MODEL_VIDEO = 'gemini-2.5-flash'; 
 export const GEMINI_MODEL_IMAGE = 'gemini-2.5-flash-image';
 
